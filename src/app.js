@@ -42,7 +42,7 @@ export const App = () => {
         };
       }
       default:
-        break;
+        return { ...state };
     }
   };
 
