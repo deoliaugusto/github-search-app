@@ -1,102 +1,141 @@
-import React from 'react';
+import React, { useReducer } from 'react';
 import AppContent from './components/App-container/app-conteiner';
 import api from 'axios';
-class App extends React.Component {
-  constructor() {
-    super();
-    this.state = {
-      userinfo: null,
-      repos: [],
-      starred: [],
-      isFetching: false,
-      show: null,
-      error: null,
-    };
-  }
 
-  getGitHubApiUrl(username, type) {
+export const App = () => {
+  const userinfoInitialState = {
+    userinfo: null,
+    repos: [],
+    starred: [],
+    isFetching: false,
+    show: null,
+    error: null,
+  };
+
+  const userMergeState = (state, action) => {
+    switch (action.type) {
+      case 'fetchSuccess': {
+        return {
+          ...state,
+          ...action.payload,
+        };
+      }
+      case 'fetchError': {
+        return {
+          ...state,
+          userInfo: action.payload.userinfo,
+          error: action.payload.error,
+        };
+      }
+      case 'isFetching': {
+        return {
+          ...state,
+          isFetching: action.payload,
+        };
+      }
+      case 'updateRepo': {
+        const repotype = action.payload.show;
+        return {
+          ...state,
+          [repotype]: action.payload[repotype],
+          show: action.payload.show,
+        };
+      }
+      default:
+        break;
+    }
+  };
+
+  const [state, dispatch] = useReducer(userMergeState, userinfoInitialState);
+
+  const getGitHubApiUrl = (username, type) => {
     const internalUser = username ? `${username}` : '';
     const internalType = type ? `/${type}` : '';
     return `https://api.github.com/users/${internalUser}${internalType}`;
-  }
+  };
 
-  handleSearch(e) {
+  const handleSearch = (e) => {
     let value = e.target.value;
     let keyCode = e.which || e.keyCode;
     let target = e.target;
     const ENTER = 13;
 
     if (keyCode === ENTER) {
-      this.setState({ isFetching: true });
+      dispatch({ type: 'isFetching', payload: true });
       target.disabled = true;
       api
-        .get(this.getGitHubApiUrl(value))
+        .get(getGitHubApiUrl(value))
         .then((result) => {
-          this.setState({
-            userinfo: {
-              username: result.data.name,
-              photo: result.data.avatar_url,
-              login: result.data.login,
-              url: result.data.url,
-              repos: result.data.public_repos,
-              followers: result.data.followers,
-              following: result.data.following,
+          dispatch({
+            type: 'fetchSuccess',
+            payload: {
+              userinfo: {
+                username: result.data.name,
+                photo: result.data.avatar_url,
+                login: result.data.login,
+                url: result.data.url,
+                repos: result.data.public_repos,
+                followers: result.data.followers,
+                following: result.data.following,
+              },
+              repos: [],
+              starred: [],
+              error: false,
             },
-            repos: [],
-            starred: [],
-            error: false,
           });
-          console.log(this.state);
         })
         .catch((error) => {
-          this.setState({
-            userinfo: {
-              username: error.response.data.message,
+          dispatch({
+            type: 'fechtError',
+            payload: {
+              userinfo: {
+                username: error.response.data.message,
+              },
+              error: true,
             },
-            error: true,
           });
-          console.log(this.state);
         })
         .then(() => {
-          this.setState({ isFetching: false });
+          dispatch({ type: 'isFetching', payload: false });
         });
     }
-  }
+  };
 
-  getRepos(type) {
+  const getRepos = (repoType) => {
     return (e) => {
-      const username = this.state.userinfo.login;
-      api.get(this.getGitHubApiUrl(username, type)).then((result) => {
-        this.setState({
-          [type]: result.data.map((repo) => {
-            return {
-              name: repo.name,
-              link: repo.html_url,
-            };
-          }),
-          show: [type],
+      const username = state.userinfo.login;
+      api.get(getGitHubApiUrl(username, repoType)).then((result) => {
+        dispatch({
+          type: 'updateRepo',
+          payload: {
+            [repoType]: result.data.map((repo) => {
+              return {
+                name: repo.name,
+                link: repo.html_url,
+              };
+            }),
+            show: [repoType],
+          },
         });
       });
     };
-  }
+  };
 
-  render() {
-    return (
-      <AppContent
-        userinfo={this.state.userinfo}
-        repos={this.state.repos}
-        starred={this.state.starred}
-        isFetching={this.state.isFetching}
-        handleSearch={(e) => {
-          this.handleSearch(e);
-        }}
-        getRepos={this.getRepos('repos')}
-        getStarred={this.getRepos('starred')}
-        show={this.state.show}
-        error={this.state.error}
-      />
-    );
-  }
-}
+  return (
+    <AppContent
+      userinfo={state.userinfo}
+      repos={state.repos}
+      starred={state.starred}
+      isFetching={state.isFetching}
+      handleSearch={(e) => {
+        handleSearch(e);
+      }}
+      getRepos={getRepos('repos')}
+      getStarred={getRepos('starred')}
+      show={state.show}
+      error={state.error}
+    />
+  );
+};
 
 export default App;
