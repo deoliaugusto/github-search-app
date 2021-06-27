@@ -1,0 +1,18 @@
+.header-component{
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+
+  h1{
+    font-size: 5rem;
+    margin-right: 20px;
+    margin-bottom: 0;
+  }
+  
+  small{
+    font-size: 1.3rem;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+}

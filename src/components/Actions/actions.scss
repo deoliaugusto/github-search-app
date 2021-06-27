@@ -1,0 +1,13 @@
+.actions-component{
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 50px;
+
+  button{
+    width: 50%;
+
+    &:first-child{
+      margin-right: 15px;
+    }
+  }
+}
