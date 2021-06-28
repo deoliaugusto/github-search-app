@@ -1,6 +1,5 @@
 import React, { useReducer } from 'react';
 import AppContent from './components/App-container';
-import api from 'axios';
 
 export const App = () => {
   const userinfoInitialState = {
@@ -48,6 +47,11 @@ export const App = () => {
 
   const [state, dispatch] = useReducer(userMergeState, userinfoInitialState);
 
+  const handleRequest = async (url) => {
+    const user = await fetch(url);
+    return user.json();
+  };
+
   const getGitHubApiUrl = (username, type) => {
     const internalUser = username ? `${username}` : '';
     const internalType = type ? `/${type}` : '';
@@ -63,20 +67,20 @@ export const App = () => {
     if (keyCode === ENTER) {
       dispatch({ type: 'isFetching', payload: true });
       target.disabled = true;
-      api
-        .get(getGitHubApiUrl(value))
+      handleRequest(getGitHubApiUrl(value))
         .then((result) => {
+          console.log(result);
           dispatch({
             type: 'fetchSuccess',
             payload: {
               userinfo: {
-                username: result.data.name,
-                photo: result.data.avatar_url,
-                login: result.data.login,
-                url: result.data.url,
-                repos: result.data.public_repos,
-                followers: result.data.followers,
-                following: result.data.following,
+                username: result.name,
+                photo: result.avatar_url,
+                login: result.login,
+                url: result.url,
+                repos: result.public_repos,
+                followers: result.followers,
+                following: result.following,
               },
               repos: [],
               starred: [],
@@ -89,7 +93,7 @@ export const App = () => {
             type: 'fechtError',
             payload: {
               userinfo: {
-                username: error.response.data.message,
+                username: error.message,
               },
               error: true,
             },
@@ -104,11 +108,11 @@ export const App = () => {
   const getRepos = (repoType) => {
     return (e) => {
       const username = state.userinfo.login;
-      api.get(getGitHubApiUrl(username, repoType)).then((result) => {
+      handleRequest(getGitHubApiUrl(username, repoType)).then((result) => {
         dispatch({
           type: 'updateRepo',
           payload: {
-            [repoType]: result.data.map((repo) => {
+            [repoType]: result.map((repo) => {
               return {
                 name: repo.name,
                 link: repo.html_url,
