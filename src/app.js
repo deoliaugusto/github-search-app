@@ -1,5 +1,5 @@
 import React, { useReducer } from 'react';
-import AppContent from './components/App-container/app-conteiner';
+import AppContent from './components/App-container';
 import api from 'axios';
 
 export const App = () => {
