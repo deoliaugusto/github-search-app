@@ -43,5 +43,8 @@
   "main": "index.js",
   "repository": "https://github.com/deoliaugusto/github-search-app.git",
   "author": "deoliaugusto",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "msw": "^0.30.0"
+  }
 }
