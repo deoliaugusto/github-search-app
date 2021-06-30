@@ -29,23 +29,29 @@ describe('<UserInfo />', () => {
     ]
   );
 
-  it('should show github user information', async () => {
+  beforeAll(() => {
     server.listen();
+  });
+  afterEach(() => {
+    server.restoreHandlers;
+  });
+  afterAll(() => {
+    server.close();
+  });
+
+  it('should show github user information', async () => {
     const userinfo = await fetch('https://api.github.com/users/jose').then(
       (res) => res.json()
     );
     const { debug } = render(<UserInfo userinfo={userinfo} />);
     debug();
-    server.close();
   });
 
   it('it should show "not found" if user wasnt finded', async () => {
-    server.listen();
     const userinfo = await fetch('https://api.github.com/users/abzbr')
       .then((res) => res.json())
       .catch((error) => error);
     const { debug } = render(<UserInfo userinfo={userinfo} error={true} />);
     debug();
-    server.close();
   });
 });
