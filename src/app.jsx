@@ -1,5 +1,7 @@
 import React, { useReducer } from 'react';
 import AppContent from './components/App-container';
+import { searchUser } from './Utils/search-user';
+import { getGitHubApiUrl } from './Utils/search-user';
 
 export const App = () => {
   const userinfoInitialState = {
@@ -47,17 +49,6 @@ export const App = () => {
 
   const [state, dispatch] = useReducer(userMergeState, userinfoInitialState);
 
-  const handleRequest = async (url) => {
-    const user = await fetch(url);
-    return user.json();
-  };
-
-  const getGitHubApiUrl = (username, type) => {
-    const internalUser = username ? `${username}` : '';
-    const internalType = type ? `/${type}` : '';
-    return `https://api.github.com/users/${internalUser}${internalType}`;
-  };
-
   const handleSearch = (e) => {
     let value = e.target.value;
     let keyCode = e.which || e.keyCode;
@@ -67,9 +58,8 @@ export const App = () => {
     if (keyCode === ENTER) {
       dispatch({ type: 'isFetching', payload: true });
       target.disabled = true;
-      handleRequest(getGitHubApiUrl(value))
+      searchUser(getGitHubApiUrl(value))
         .then((result) => {
-          console.log(result);
           dispatch({
             type: 'fetchSuccess',
             payload: {
@@ -108,7 +98,7 @@ export const App = () => {
   const getRepos = (repoType) => {
     return (e) => {
       const username = state.userinfo.login;
-      handleRequest(getGitHubApiUrl(username, repoType)).then((result) => {
+      searchUser(getGitHubApiUrl(username, repoType)).then((result) => {
         dispatch({
           type: 'updateRepo',
           payload: {
